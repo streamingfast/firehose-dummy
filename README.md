@@ -1,6 +1,6 @@
-# sf-chain
+# firehose-dommy
 
-StreamingFast CLI for the Dummy Chain
+Firehose CLI for the [Dummy Chain](https://github.com/streamingfast/dummy-blockchain)
 
 ## Building
 
