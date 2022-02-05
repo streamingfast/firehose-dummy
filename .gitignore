@@ -1,0 +1,6 @@
+.DS_Store
+sf-data/*
+data/*
+build/*
+tmp/*
+./firehose-dummy
