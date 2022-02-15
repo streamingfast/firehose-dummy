@@ -18,7 +18,6 @@ var (
 
 	// Protocol defaults
 	FirstStreamableBlock = 0
-	GenesisBlock         = 0
 )
 
 func init() {
@@ -34,7 +33,6 @@ func init() {
 		flags.String("common-oneblock-store-url", OneBlockStoreURL, "Store URL (with prefix) to read/write one-block files")
 		flags.String("common-blockstream-addr", RelayerServingAddr, "GRPC endpoint to get real-time blocks")
 		flags.Int("common-first-streamable-block", FirstStreamableBlock, "First streamable block number")
-		flags.Int("common-genesis-block", GenesisBlock, "Genesis block number")
 
 		// Authentication, metering and rate limiter plugins
 		flags.String("common-auth-plugin", "null://", "Auth plugin URI, see streamingfast/dauth repository")
