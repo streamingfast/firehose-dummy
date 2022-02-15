@@ -6,6 +6,10 @@ build:
 setup:
 	go mod download
 
+.PHONY: test
+test:
+	go test -cover -race ./...
+
 .PHONY: clean
 clean:
 	@rm -rf ./tmp/
