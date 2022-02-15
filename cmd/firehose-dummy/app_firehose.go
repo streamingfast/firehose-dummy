@@ -40,12 +40,15 @@ func init() {
 
 	factoryFunc := func(runtime *launcher.Runtime) (launcher.App, error) {
 		sfDataDir := runtime.AbsDataDir
+
 		tracker := runtime.Tracker.Clone()
+		tracker.AddResolver(bstream.OffsetStartBlockResolver(10)) // TODO: make this configurable
 
 		// Configure block stream connection (to node or relayer)
 		blockstreamAddr := viper.GetString("common-blockstream-addr")
 		if blockstreamAddr != "" {
 			tracker.AddGetter(bstream.BlockStreamLIBTarget, bstream.StreamLIBBlockRefGetter(blockstreamAddr))
+			tracker.AddGetter(bstream.BlockStreamHeadTarget, bstream.StreamHeadBlockRefGetter(blockstreamAddr))
 		}
 
 		// Configure authentication (default is no auth)

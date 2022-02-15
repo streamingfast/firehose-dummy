@@ -6,6 +6,8 @@ import (
 	"github.com/streamingfast/derr"
 	"github.com/streamingfast/dlauncher/flags"
 	"github.com/streamingfast/dlauncher/launcher"
+
+	"github.com/streamingfast/firehose-dummy/codec"
 )
 
 var (
@@ -26,11 +28,11 @@ func main() {
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		launcher.SetupLogger(&launcher.LoggingOptions{
-			WorkingDir:    viper.GetString("global-data-dir"),
-			Verbosity:     viper.GetInt("global-verbose"),
-			LogFormat:     viper.GetString("global-log-format"),
-			LogToFile:     viper.GetBool("global-log-to-file"),
-			LogListenAddr: viper.GetString("global-log-level-switcher-listen-addr"),
+			WorkingDir:    viper.GetString("data-dir"),
+			Verbosity:     viper.GetInt("verbose"),
+			LogFormat:     viper.GetString("log-format"),
+			LogToFile:     viper.GetBool("log-to-file"),
+			LogListenAddr: viper.GetString("log-level-switcher-listen-addr"),
 		})
 		return nil
 	}
@@ -41,6 +43,9 @@ func main() {
 		setupCommand,
 	)
 
+	codec.SetProtocolFirstStreamableBlock(FirstStreamableBlock)
+
+	derr.Check("validating codec settings", codec.Validate())
 	derr.Check("registering application flags", launcher.RegisterFlags(startCommand))
 	derr.Check("executing root command", rootCmd.Execute())
 }

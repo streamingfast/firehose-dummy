@@ -17,7 +17,7 @@ var (
 	OneBlockStoreURL     string = "file://{sf-data-dir}/storage/one-blocks"
 
 	// Protocol defaults
-	FirstStreamableBlock = 0
+	FirstStreamableBlock uint64 = 1
 )
 
 func init() {
@@ -25,14 +25,14 @@ func init() {
 		flags := cmd.Flags()
 
 		// Logging
-		flags.Int("global-verbose", 3, "Logging verbosity")
-		flags.String("global-log-format", "text", "Logging format")
+		flags.Int("verbose", 3, "Logging verbosity")
+		flags.String("log-format", "text", "Logging format")
 
 		// Common stores configuration flags
 		flags.String("common-blocks-store-url", MergedBlocksStoreURL, "Store URL (with prefix) where to read/write")
 		flags.String("common-oneblock-store-url", OneBlockStoreURL, "Store URL (with prefix) to read/write one-block files")
 		flags.String("common-blockstream-addr", RelayerServingAddr, "GRPC endpoint to get real-time blocks")
-		flags.Int("common-first-streamable-block", FirstStreamableBlock, "First streamable block number")
+		flags.Uint64("common-first-streamable-block", FirstStreamableBlock, "First streamable block number")
 
 		// Authentication, metering and rate limiter plugins
 		flags.String("common-auth-plugin", "null://", "Auth plugin URI, see streamingfast/dauth repository")

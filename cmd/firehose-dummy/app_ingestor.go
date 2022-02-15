@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -44,6 +45,8 @@ func init() {
 		flags.Bool("ingestor-logs-watch", true, "exit when all matched files are processed")
 		flags.Int("ingestor-line-buffer-size", defaultLineBufferSize, "line reader buffer size")
 		flags.String("mindreader-node-working-dir", "{sf-data-dir}/workdir", "Path where mindreader will stores its files")
+		flags.String("mindreader-node-grpc-listen-addr", BlockStreamServingAddr, "GRPC server listen address")
+		flags.Duration("mindreader-node-merge-threshold-block-age", time.Duration(math.MaxInt64), "When processing blocks with a blocktime older than this threshold, they will be automatically merged")
 
 		return nil
 	}
@@ -75,7 +78,7 @@ func init() {
 		oneBlockStoreURL := mustReplaceDataDir(sfDataDir, viper.GetString("common-oneblock-store-url"))
 		mergedBlockStoreURL := mustReplaceDataDir(sfDataDir, viper.GetString("common-blocks-store-url"))
 		workingDir := mustReplaceDataDir(sfDataDir, viper.GetString("mindreader-node-working-dir"))
-		//gprcListenAdrr := viper.GetString("mindreader-node-grpc-listen-addr")
+		gprcListenAdrr := viper.GetString("mindreader-node-grpc-listen-addr")
 		mergeAndStoreDirectly := viper.GetBool("mindreader-node-merge-and-store-directly")
 		mergeThresholdBlockAge := viper.GetDuration("mindreader-node-merge-threshold-block-age")
 		batchStartBlockNum := viper.GetUint64("mindreader-node-start-block-num")
@@ -136,10 +139,12 @@ func init() {
 		}
 
 		return &IngestorApp{
-			Shutter:        shutter.New(),
-			mrp:            mrp,
-			mode:           viper.GetString("ingestor-mode"),
-			lineBufferSize: viper.GetInt("ingestor-line-buffer-size"),
+			Shutter:          shutter.New(),
+			mrp:              mrp,
+			mode:             viper.GetString("ingestor-mode"),
+			lineBufferSize:   viper.GetInt("ingestor-line-buffer-size"),
+			server:           server,
+			serverListenAddr: gprcListenAdrr,
 		}, nil
 	}
 
@@ -162,16 +167,21 @@ func headBlockUpdater(uint64, string, time.Time) {
 type IngestorApp struct {
 	*shutter.Shutter
 
-	mode           string
-	logsDir        string
-	lineBufferSize int
+	mode             string
+	logsDir          string
+	lineBufferSize   int
+	serverListenAddr string
 
-	mrp *mindreader.MindReaderPlugin
+	mrp    *mindreader.MindReaderPlugin
+	server *dgrpc.Server
 }
 
 func (app *IngestorApp) Run() error {
 	zlog.Info("starting ingestor", zap.String("mode", app.mode))
 	defer zlog.Info("stopped ingestor")
+
+	zlog.Info("starting ingestor mind reader blockstream server")
+	go app.server.Launch(app.serverListenAddr)
 
 	zlog.Info("starting ingestor mind reader plugin")
 	app.mrp.Launch()

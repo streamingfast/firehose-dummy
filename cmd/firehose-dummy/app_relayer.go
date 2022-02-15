@@ -13,7 +13,7 @@ import (
 func init() {
 	registerFlags := func(cmd *cobra.Command) error {
 		cmd.Flags().String("relayer-grpc-listen-addr", RelayerServingAddr, "Address to listen for incoming gRPC requests")
-		cmd.Flags().StringSlice("relayer-source", []string{}, "List of Blockstream sources (mindreaders) to connect to for live block feeds (repeat flag as needed)")
+		cmd.Flags().StringSlice("relayer-source", []string{BlockStreamServingAddr}, "List of Blockstream sources (mindreaders) to connect to for live block feeds (repeat flag as needed)")
 		cmd.Flags().Int("relayer-source-request-burst", 90, "Block burst requested by relayer (useful when chaining relayers together, because normally a mindreader won't have a block buffer)")
 		cmd.Flags().String("relayer-merger-addr", MergerServingAddr, "Address for grpc merger service")
 		cmd.Flags().Int("relayer-buffer-size", 350, "Number of blocks that will be kept and sent immediately on connection")

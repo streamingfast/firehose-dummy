@@ -27,5 +27,10 @@ func BlockFromProto(b *pbcodec.Block) (*bstream.Block, error) {
 		PayloadVersion: 1,
 	}
 
+	if block.Number == bstream.GetProtocolFirstStreamableBlock {
+		block.LibNum = bstream.GetProtocolFirstStreamableBlock
+		block.PreviousId = ""
+	}
+
 	return bstream.GetBlockPayloadSetter(block, content)
 }
