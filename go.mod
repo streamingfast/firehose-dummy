@@ -8,7 +8,7 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
-	github.com/streamingfast/bstream v0.0.2-0.20220113132902-e4dc9ed53d86
+	github.com/streamingfast/bstream v0.0.2-0.20220211203037-c8c9a009bd74
 	github.com/streamingfast/dauth v0.0.0-20210812020920-1c83ba29add1
 	github.com/streamingfast/dbin v0.0.0-20210809205249-73d5eca35dc5
 	github.com/streamingfast/derr v0.0.0-20210811180100-9138d738bcec
@@ -16,14 +16,14 @@ require (
 	github.com/streamingfast/dlauncher v0.0.0-20211210162313-cf4aa5fc4878
 	github.com/streamingfast/dmetering v0.0.0-20210812002943-aa53fa1ce172
 	github.com/streamingfast/dmetrics v0.0.0-20210811180524-8494aeb34447
-	github.com/streamingfast/dstore v0.1.1-0.20211028233549-6fa17808533b
+	github.com/streamingfast/dstore v0.1.1-0.20220203133825-30eb2f9c5cd3
 	github.com/streamingfast/dummy-blockchain v0.0.0-20220205151806-65cc871f0e0b
-	github.com/streamingfast/firehose v0.1.1-0.20220114160935-8c52fe577b57
+	github.com/streamingfast/firehose v0.1.1-0.20220215134949-adbd9680b454
 	github.com/streamingfast/logging v0.0.0-20211221170249-09a6ecb200a0
-	github.com/streamingfast/merger v0.0.3-0.20220113161439-b31552a6aa77
+	github.com/streamingfast/merger v0.0.3-0.20220214174248-f12f24dce455
 	github.com/streamingfast/node-manager v0.0.2-0.20220111134042-8a0db96986a1
 	github.com/streamingfast/pbgo v0.0.6-0.20220104194237-6534a2f6320b
-	github.com/streamingfast/relayer v0.0.2-0.20211210154316-8a6048581873
+	github.com/streamingfast/relayer v0.0.2-0.20220120224524-84b9578c9323
 	github.com/streamingfast/shutter v1.5.0
 	go.uber.org/zap v1.19.1
 	google.golang.org/grpc v1.43.0
@@ -83,7 +83,7 @@ require (
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/streamingfast/atm v0.0.0-20211217182254-d1ed00f538eb // indirect
+	github.com/streamingfast/atm v0.0.0-20220131151839-18c87005e680 // indirect
 	github.com/streamingfast/dmesh v0.0.0-20210811181323-5a37ad73216b // indirect
 	github.com/streamingfast/dtracing v0.0.0-20210811175635-d55665d3622a // indirect
 	github.com/streamingfast/opaque v0.0.0-20210811180740-0c01d37ea308 // indirect

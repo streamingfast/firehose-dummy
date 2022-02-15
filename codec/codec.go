@@ -22,10 +22,6 @@ func Validate() error {
 		return err
 	}
 
-	if bstream.GetProtocolGenesisBlock == 0 {
-		return errors.New("protocol genesis block height must be set")
-	}
-
 	if bstream.GetProtocolFirstStreamableBlock == 0 {
 		return errors.New("protocol first streamable block must be set")
 	}
@@ -35,10 +31,6 @@ func Validate() error {
 
 func SetProtocolFirstStreamableBlock(height uint64) {
 	bstream.GetProtocolFirstStreamableBlock = height
-}
-
-func SetProtocolGenesisBlock(height uint64) {
-	bstream.GetProtocolGenesisBlock = height
 }
 
 func BlockReaderFactory(reader io.Reader) (bstream.BlockReader, error) {
