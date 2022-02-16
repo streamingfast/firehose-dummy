@@ -4,16 +4,14 @@ import (
 	"fmt"
 
 	"github.com/streamingfast/bstream"
-	pbbstream "github.com/streamingfast/pbgo/sf/bstream/v1"
 	"google.golang.org/protobuf/proto"
 
 	pbcodec "github.com/streamingfast/dummy-blockchain/proto"
 )
 
 func blockDecoder(blk *bstream.Block) (interface{}, error) {
-	// TODO: Switch to correct protocol number
-	if blk.Kind() != pbbstream.Protocol_UNKNOWN {
-		return nil, fmt.Errorf("expected kind %s, got %s", pbbstream.Protocol_UNKNOWN, blk.Kind())
+	if blk.Kind() != ProtocolNum {
+		return nil, fmt.Errorf("expected kind %s, got %s", ProtocolNum, blk.Kind())
 	}
 
 	if blk.Version() != 1 {

@@ -6,7 +6,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/streamingfast/bstream"
-	pbbstream "github.com/streamingfast/pbgo/sf/bstream/v1"
 
 	pbcodec "github.com/streamingfast/dummy-blockchain/proto"
 )
@@ -23,7 +22,7 @@ func BlockFromProto(b *pbcodec.Block) (*bstream.Block, error) {
 		PreviousId:     b.PrevHash,
 		Timestamp:      time.Unix(0, int64(b.Timestamp)).UTC(),
 		LibNum:         b.Height - 1,
-		PayloadKind:    pbbstream.Protocol_UNKNOWN, // TODO: Create dummy protocol
+		PayloadKind:    ProtocolNum,
 		PayloadVersion: 1,
 	}
 

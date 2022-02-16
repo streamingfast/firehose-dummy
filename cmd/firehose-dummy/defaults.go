@@ -25,7 +25,7 @@ func init() {
 		flags := cmd.Flags()
 
 		// Logging
-		flags.Int("verbose", 3, "Logging verbosity")
+		flags.Int("verbose", 1, "Logging verbosity")
 		flags.String("log-format", "text", "Logging format")
 
 		// Common stores configuration flags

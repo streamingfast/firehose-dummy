@@ -6,6 +6,11 @@ import (
 	"time"
 
 	"github.com/streamingfast/bstream"
+	pbbstream "github.com/streamingfast/pbgo/sf/bstream/v1"
+)
+
+const (
+	ProtocolNum = pbbstream.Protocol_UNKNOWN
 )
 
 func init() {

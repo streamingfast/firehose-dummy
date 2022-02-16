@@ -18,6 +18,8 @@ var (
 )
 
 func runStartCommand(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
+
 	var err error
 	tracker := bstream.NewTracker(50)
 

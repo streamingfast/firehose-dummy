@@ -1,14 +1,12 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"errors"
-	"io"
+	"fmt"
 	"log"
 	"math"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -17,7 +15,9 @@ import (
 	"github.com/streamingfast/bstream/blockstream"
 	"github.com/streamingfast/dgrpc"
 	"github.com/streamingfast/dlauncher/launcher"
+	"github.com/streamingfast/logging"
 	"github.com/streamingfast/node-manager/mindreader"
+
 	pbbstream "github.com/streamingfast/pbgo/sf/bstream/v1"
 	pbheadinfo "github.com/streamingfast/pbgo/sf/headinfo/v1"
 	"github.com/streamingfast/shutter"
@@ -31,45 +31,44 @@ import (
 const (
 	defaultLineBufferSize = 10 * 1024 * 1024
 
-	modeLogs  = "logs"
-	modeStdin = "stdin"
+	modeLogs  = "logs"  // Consume events from the log file(s)
+	modeStdin = "stdin" // Consume events from the STDOUT of another process
+	modeNode  = "node"  // Consume events from the spawned node process
 )
 
 func init() {
+	appLogger := zap.NewNop()
+	logging.Register("ingestor", &appLogger)
+
 	registerFlags := func(cmd *cobra.Command) error {
 		flags := cmd.Flags()
 
-		flags.String("ingestor-mode", modeStdin, "mode of operation")
-		flags.String("ingestor-logs-dir", "", "directory where instrumentation logs are stored")
-		flags.String("ingestor-logs-pattern", ".log", "pattern of the log files")
-		flags.Bool("ingestor-logs-watch", true, "exit when all matched files are processed")
-		flags.Int("ingestor-line-buffer-size", defaultLineBufferSize, "line reader buffer size")
-		flags.String("mindreader-node-working-dir", "{sf-data-dir}/workdir", "Path where mindreader will stores its files")
-		flags.String("mindreader-node-grpc-listen-addr", BlockStreamServingAddr, "GRPC server listen address")
-		flags.Duration("mindreader-node-merge-threshold-block-age", time.Duration(math.MaxInt64), "When processing blocks with a blocktime older than this threshold, they will be automatically merged")
+		flags.String("ingestor-mode", modeStdin, "Mode of operation, one of (stdin, logs, node)")
+		flags.String("ingestor-logs-dir", "", "Event logs source directory")
+		flags.Int("ingestor-line-buffer-size", defaultLineBufferSize, "Buffer size in bytes for the line reader")
+		flags.String("ingestor-working-dir", "{sf-data-dir}/workdir", "Path where mindreader will stores its files")
+		flags.String("ingestor-grpc-listen-addr", BlockStreamServingAddr, "GRPC server listen address")
+		flags.Duration("ingestor-merge-threshold-block-age", time.Duration(math.MaxInt64), "When processing blocks with a blocktime older than this threshold, they will be automatically merged")
+		flags.String("ingestor-node-path", "", "Path to node binary")
+		flags.String("ingestor-node-dir", "", "Node working directory")
+		flags.String("ingestor-node-args", "", "Node process arguments")
 
 		return nil
 	}
 
 	initFunc := func(runtime *launcher.Runtime) (err error) {
-		switch viper.GetString("ingestor-mode") {
+		mode := viper.GetString("ingestor-mode")
+
+		switch mode {
+		case modeStdin:
+			return nil
+		case modeNode:
+			return checkNodeBinPath(viper.GetString("ingestor-node-path"))
 		case modeLogs:
-			dir := viper.GetString("ingestor-logs-dir")
-			if dir == "" {
-				return errors.New("ingestor logs dir must be set")
-			}
-
-			dir, err = expandDir(dir)
-			if err != nil {
-				return err
-			}
-
-			if !dirExists(dir) {
-				return errors.New("ingestor logs dir must exist")
-			}
+			return checkLogsSource(viper.GetString("ingestor-logs-dir"))
+		default:
+			return fmt.Errorf("invalid mode: %v", mode)
 		}
-
-		return nil
 	}
 
 	factoryFunc := func(runtime *launcher.Runtime) (launcher.App, error) {
@@ -77,16 +76,15 @@ func init() {
 
 		oneBlockStoreURL := mustReplaceDataDir(sfDataDir, viper.GetString("common-oneblock-store-url"))
 		mergedBlockStoreURL := mustReplaceDataDir(sfDataDir, viper.GetString("common-blocks-store-url"))
-		workingDir := mustReplaceDataDir(sfDataDir, viper.GetString("mindreader-node-working-dir"))
-		gprcListenAdrr := viper.GetString("mindreader-node-grpc-listen-addr")
-		mergeAndStoreDirectly := viper.GetBool("mindreader-node-merge-and-store-directly")
-		mergeThresholdBlockAge := viper.GetDuration("mindreader-node-merge-threshold-block-age")
-		batchStartBlockNum := viper.GetUint64("mindreader-node-start-block-num")
-		batchStopBlockNum := viper.GetUint64("mindreader-node-stop-block-num")
-		waitTimeForUploadOnShutdown := viper.GetDuration("mindreader-node-wait-upload-complete-on-shutdown")
-		oneBlockFileSuffix := viper.GetString("mindreader-node-oneblock-suffix")
-		blocksChanCapacity := viper.GetInt("mindreader-node-blocks-chan-capacity")
-		appLogger := zap.NewNop()
+		workingDir := mustReplaceDataDir(sfDataDir, viper.GetString("ingestor-working-dir"))
+		gprcListenAdrr := viper.GetString("ingestor-grpc-listen-addr")
+		mergeAndStoreDirectly := viper.GetBool("ingestor-merge-and-store-directly")
+		mergeThresholdBlockAge := viper.GetDuration("ingestor-merge-threshold-block-age")
+		batchStartBlockNum := viper.GetUint64("ingestor-start-block-num")
+		batchStopBlockNum := viper.GetUint64("ingestor-stop-block-num")
+		waitTimeForUploadOnShutdown := viper.GetDuration("ingestor-wait-upload-complete-on-shutdown")
+		oneBlockFileSuffix := viper.GetString("ingestor-oneblock-suffix")
+		blocksChanCapacity := viper.GetInt("ingestor-blocks-chan-capacity")
 
 		tracker := bstream.NewTracker(50) // TODO: make a flag
 		tracker.AddResolver(bstream.OffsetStartBlockResolver(1))
@@ -143,6 +141,9 @@ func init() {
 			mrp:              mrp,
 			mode:             viper.GetString("ingestor-mode"),
 			lineBufferSize:   viper.GetInt("ingestor-line-buffer-size"),
+			nodeBinPath:      viper.GetString("ingestor-node-path"),
+			nodeDir:          viper.GetString("ingestor-node-dir"),
+			nodeArgs:         viper.GetString("ingestor-node-args"),
 			server:           server,
 			serverListenAddr: gprcListenAdrr,
 		}, nil
@@ -164,55 +165,36 @@ func headBlockUpdater(uint64, string, time.Time) {
 	// TODO: will need to be implemented somewhere
 }
 
-type IngestorApp struct {
-	*shutter.Shutter
+func checkLogsSource(dir string) error {
+	if dir == "" {
+		return errors.New("ingestor logs dir must be set")
+	}
 
-	mode             string
-	logsDir          string
-	lineBufferSize   int
-	serverListenAddr string
+	dir, err := expandDir(dir)
+	if err != nil {
+		return err
+	}
 
-	mrp    *mindreader.MindReaderPlugin
-	server *dgrpc.Server
-}
+	if !dirExists(dir) {
+		return errors.New("ingestor logs dir must exist")
+	}
 
-func (app *IngestorApp) Run() error {
-	zlog.Info("starting ingestor", zap.String("mode", app.mode))
-	defer zlog.Info("stopped ingestor")
-
-	zlog.Info("starting ingestor mind reader blockstream server")
-	go app.server.Launch(app.serverListenAddr)
-
-	zlog.Info("starting ingestor mind reader plugin")
-	app.mrp.Launch()
-
-	go func() {
-		err := app.startScanner(os.Stdin)
-		zlog.Info("stanner finished", zap.Error(err))
-		app.mrp.Shutdown(err)
-	}()
-
-	<-app.mrp.Terminated()
 	return nil
 }
 
-func (app *IngestorApp) startScanner(src io.Reader) error {
-	scanner := bufio.NewReaderSize(os.Stdin, app.lineBufferSize)
-
-	for {
-		line, err := scanner.ReadString('\n')
-		if err != nil {
-			if err != io.EOF {
-				zlog.Error("got an error from readstring", zap.Error(err))
-				return err
-			}
-
-			if len(line) == 0 {
-				zlog.Info("finished reading source")
-				return nil
-			}
-		}
-
-		app.mrp.LogLine(strings.TrimSpace(line))
+func checkNodeBinPath(binPath string) error {
+	if binPath == "" {
+		return errors.New("node path must be set")
 	}
+
+	stat, err := os.Stat(binPath)
+	if err != nil {
+		return fmt.Errorf("cant inspect node path: %w", err)
+	}
+
+	if stat.IsDir() {
+		return fmt.Errorf("path %v is a directory", binPath)
+	}
+
+	return nil
 }

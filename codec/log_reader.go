@@ -64,7 +64,7 @@ func (r *LogReader) Done() <-chan interface{} {
 
 func (r *LogReader) next() (interface{}, error) {
 	for line := range r.lines {
-		data, err := r.parseLine(line)
+		data, err := r.parseLine(strings.TrimSpace(line))
 		if err != nil {
 			return nil, err
 		}
