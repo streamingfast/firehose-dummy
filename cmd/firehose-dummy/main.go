@@ -12,13 +12,18 @@ import (
 	"github.com/streamingfast/firehose-dummy/codec"
 )
 
+const (
+	version = "0.0.1"
+)
+
 var (
 	userLog = launcher.UserLog
 	zlog    *zap.Logger
 
 	rootCmd = &cobra.Command{
-		Use:   "firehose-dummy",
-		Short: "Dummy Chain Firehose",
+		Use:     "firehose-dummy",
+		Short:   "Dummy Chain Firehose",
+		Version: version,
 	}
 )
 
