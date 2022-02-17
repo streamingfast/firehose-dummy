@@ -114,6 +114,16 @@ firehose-dummy start ingestor \
   --ingestor-node-args="start" \
 ```
 
+Alternatively, you can provide options via environment variables:
+
+```bash
+FH_INGESTOR_MODE=node \
+FH_INGESTOR_NODE_PATH=/path/to/blockchain/bin \
+FH_INGESTOR_NODE_DIR=/path/to/blockchain/home \
+FH_INGESTOR_NODE_ARGS="start" \
+firehose-dummy start ingestor
+```
+
 ### Standard input mode
 
 In this mode, the Ingestor component will consule blockchain event logs from the 
