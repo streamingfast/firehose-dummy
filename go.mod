@@ -17,7 +17,7 @@ require (
 	github.com/streamingfast/dmetering v0.0.0-20210812002943-aa53fa1ce172
 	github.com/streamingfast/dmetrics v0.0.0-20210811180524-8494aeb34447
 	github.com/streamingfast/dstore v0.1.1-0.20220203133825-30eb2f9c5cd3
-	github.com/streamingfast/dummy-blockchain v0.0.0-20220215184313-e5446b53bbe3
+	github.com/streamingfast/dummy-blockchain v0.0.2-0.20220217161228-6a0d4635ba3a
 	github.com/streamingfast/firehose v0.1.1-0.20220215134949-adbd9680b454
 	github.com/streamingfast/logging v0.0.0-20211221170249-09a6ecb200a0
 	github.com/streamingfast/merger v0.0.3-0.20220214174248-f12f24dce455
