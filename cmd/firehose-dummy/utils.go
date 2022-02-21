@@ -113,6 +113,11 @@ func dirExists(dir string) bool {
 	return info.IsDir()
 }
 
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
 func runChain(handlers ...func() error) error {
 	for _, handler := range handlers {
 		if err := handler(); err != nil {
