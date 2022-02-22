@@ -27,6 +27,7 @@ func init() {
 		// Logging
 		flags.Int("verbose", 1, "Logging verbosity")
 		flags.String("log-format", "text", "Logging format")
+		flags.String("config", "firehose.yml", "Path to configuration file")
 
 		// Common stores configuration flags
 		flags.String("common-blocks-store-url", MergedBlocksStoreURL, "Store URL (with prefix) where to read/write")
